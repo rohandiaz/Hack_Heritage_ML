@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer Recommendations</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 80%; margin: auto; padding: 20px; }
+        form { margin-bottom: 20px; }
+        input, select { margin: 10px 0; padding: 10px; width: 100%; }
+        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .results { margin-top: 20px; }
+        .result-item { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find the Perfect Freelancer</h1>
+        <form id="recommendation-form">
+            <label for="project_type">Project Type:</label>
+            <input type="text" id="project_type" name="project_type" required>
+            
+            <label for="skills_needed">Skills Needed (comma-separated):</label>
+            <input type="text" id="skills_needed" name="skills_needed" required>
+            
+            <label for="budget">Budget:</label>
+            <input type="number" id="budget" name="budget" required>
+            
+            <button type="submit">Get Recommendations</button>
+        </form>
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        document.getElementById('recommendation-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const data = new URLSearchParams(formData).toString();
+
+            fetch('/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: data
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '';
+                data.forEach(freelancer => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `<strong>Name:</strong> ${freelancer.name}<br>
+                                      <strong>Skills:</strong> ${freelancer.skills.join(', ')}<br>
+                                      <strong>Hourly Rate:</strong> $${freelancer.hourly_rate}`;
+                    resultsDiv.appendChild(div);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
