@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Skill Matcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="file"],
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Skill Matcher</h1>
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="skills">Required Skills (comma-separated):</label>
+                <input type="text" id="skills" name="skills" placeholder="e.g., Python, Data Analysis, Machine Learning" required>
+            </div>
+            <div class="form-group">
+                <label for="additionalSkills">Additional Skills you know (comma-separated, optional):</label>
+                <input type="text" id="additionalSkills" name="additionalSkills" placeholder="e.g., JavaScript, SQL">
+            </div>
+            <div class="form-group">
+                <label for="file">Upload PDF:</label>
+                <input type="file" id="file" name="file" accept="application/pdf" required>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+
+        <div id="results" style="display: none;">
+            <h2>Results</h2>
+            <p><strong>Matched Skills:</strong> <span id="matchedSkills"></span></p>
+            <p><strong>Missing Skills:</strong> <span id="missingSkills"></span></p>
+            <p><strong>Match Score:</strong> <span id="matchScore"></span>%</p>
+            <h3>Skill Match Score Pie Chart:</h3>
+            <img id="pieChart" src="" alt="Pie Chart">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const skillsInput = document.getElementById('skills');
+            const additionalSkillsInput = document.getElementById('additionalSkills');
+            const fileInput = document.getElementById('file');
+        
+            // Check if inputs are present
+            if (!skillsInput || !fileInput) {
+                console.error('One or more form elements are missing.');
+                alert('Form input elements are missing.');
+                return;
+            }
+        
+            const formData = new FormData();
+            formData.append('skills', skillsInput.value);
+            formData.append('additionalSkills', additionalSkillsInput.value || '');
+            formData.append('file', fileInput.files[0]);
+        
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+        
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+        
+                const result = await response.json();
+                
+                // Check if the expected fields are present in the result
+                if (result.matched_skills && result.missing_skills && result.match_score && result.pie_chart) {
+                    document.getElementById('matchedSkills').innerText = result.matched_skills.join(', ');
+                    document.getElementById('missingSkills').innerText = result.missing_skills.join(', ');
+                    document.getElementById('matchScore').innerText = result.match_score;
+                    document.getElementById('pieChart').src = 'data:image/png;base64,' + result.pie_chart;
+                    document.getElementById('results').style.display = 'block';
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while processing your request.');
+            }
+        });
+    </script>
+</body>
+</html>
